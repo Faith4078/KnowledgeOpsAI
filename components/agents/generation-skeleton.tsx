@@ -1,12 +1,19 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Loading placeholder shown while the Generator Agent runs. */
-export function GenerationSkeleton() {
+interface GenerationSkeletonProps {
+  /** Status line above the skeleton cards. */
+  message?: string;
+}
+
+/** Loading placeholder shown while an agent call is in flight. */
+export function GenerationSkeleton({
+  message = "Generator Agent is writing your article, FAQs, and quiz…",
+}: GenerationSkeletonProps) {
   return (
     <section aria-label="Generating content" aria-busy="true" className="grid gap-6">
       <p className="text-sm text-muted-foreground" role="status">
-        Generator Agent is writing your article, FAQs, and quiz…
+        {message}
       </p>
       {[0, 1].map((key) => (
         <Card key={key}>

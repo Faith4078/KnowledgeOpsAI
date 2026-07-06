@@ -29,3 +29,34 @@ Documentation:
 ${documentation}
 """`;
 }
+
+export function buildReviewerPrompt(bundleJson: string): string {
+  return `You are the Review Agent for LearnOps AI, an internal customer-education platform.
+
+Below is a draft education bundle produced by the Generator Agent. Review and improve the ENTIRE bundle, then return the improved version.
+
+Improve:
+- Clarity and flow: tighten wording, fix awkward phrasing, keep it beginner-friendly.
+- Article structure: sensible Markdown headings, short paragraphs, lists where they help.
+- Formatting: consistent Markdown, no stray artifacts or code fences.
+- FAQs: questions a real customer would ask, with direct, accurate answers.
+- Quiz quality: unambiguous questions, plausible distractors, the answer must match one option verbatim, explanations that teach.
+- Consistency: terminology, tone, and title/slug/summary all agree with the article.
+
+Do NOT invent features or facts not present in the draft. Keep the slug URL-safe kebab-case.
+
+Respond with ONLY a single JSON object — no markdown fences, no commentary — with exactly the same shape as the draft:
+{
+  "title": "string",
+  "slug": "string",
+  "summary": "string",
+  "article": "string — full Markdown article",
+  "faqs": [{ "question": "string", "answer": "string" }],
+  "quiz": [{ "question": "string", "options": ["string", "..."], "answer": "string — one of the options verbatim", "explanation": "string" }]
+}
+
+Draft bundle:
+"""
+${bundleJson}
+"""`;
+}

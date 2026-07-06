@@ -1,5 +1,5 @@
 export { generateWithGemini, setModelCaller } from "./gemini";
-export { buildGeneratorPrompt } from "./prompts";
+export { buildGeneratorPrompt, buildReviewerPrompt } from "./prompts";
 export {
   contentBundleSchema,
   faqSchema,

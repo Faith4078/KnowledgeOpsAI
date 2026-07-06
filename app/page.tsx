@@ -1,5 +1,5 @@
+import { PipelineWorkspace } from "@/components/agents/pipeline-workspace";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { DocumentationWorkspace } from "@/components/upload/documentation-workspace";
 
 export default function HomePage() {
   return (
@@ -10,12 +10,12 @@ export default function HomePage() {
             Documentation, published as learning.
           </h1>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Paste raw product documentation and let the Generator Agent produce
-            a publish-ready help article, FAQs, and knowledge-check quiz in a
-            single pass.
+            Paste raw product documentation and the Generator and Review
+            Agents turn it into a polished, publish-ready help article, FAQs,
+            and knowledge-check quiz.
           </p>
         </div>
-        <DocumentationWorkspace />
+        <PipelineWorkspace />
       </div>
     </DashboardShell>
   );
