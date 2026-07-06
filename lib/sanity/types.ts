@@ -22,6 +22,32 @@ export interface SanityWriter {
   createHelpArticle(doc: HelpArticleDoc): Promise<string>;
 }
 
+/** Listing-page projection of a published help article. */
+export interface HelpArticleSummary {
+  title: string;
+  slug: string;
+  summary: string;
+  publishedAt: string;
+}
+
+/** The full `helpArticle` document as read back from Sanity. */
+export interface HelpArticle extends HelpArticleSummary {
+  article: string;
+  faqs: Faq[];
+  quiz: QuizQuestion[];
+}
+
+/**
+ * The seam through which the app reads from Sanity. Tests fake this
+ * interface (via `setSanityReader`) exactly like `SanityWriter`.
+ */
+export interface SanityReader {
+  /** All published article summaries; order is normalized by the caller. */
+  fetchArticleSummaries(): Promise<HelpArticleSummary[]>;
+  /** The full article for a slug, or null when no document matches. */
+  fetchArticleBySlug(slug: string): Promise<HelpArticle | null>;
+}
+
 export interface SanityError {
   code: "missing-config" | "sanity-error";
   message: string;
