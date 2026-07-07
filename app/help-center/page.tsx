@@ -20,7 +20,7 @@ export default async function HelpCenterPage() {
     <DashboardShell active="help-center">
       <div className="grid gap-12">
         <div className="grid max-w-3xl gap-4">
-          <h1 className="font-serif text-5xl font-normal leading-tight tracking-tight">
+          <h1 className="font-serif text-4xl font-normal leading-tight tracking-tight sm:text-5xl">
             Help Center
           </h1>
           <p className="text-lg leading-relaxed text-muted-foreground">

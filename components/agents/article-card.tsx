@@ -16,6 +16,9 @@ const HEADING_CLASSES = {
   3: "text-lg font-medium",
 } as const;
 
+// Preview headings sit under the page <h1>, so level 1 → <h2> etc.
+const HEADING_TAGS = { 1: "h2", 2: "h3", 3: "h4" } as const;
+
 /** Help-center article rendered as plain formatted text (Markdown renderer comes later). */
 export function ArticleCard({ article }: ArticleCardProps) {
   const blocks = parseArticleBlocks(article);
@@ -28,10 +31,11 @@ export function ArticleCard({ article }: ArticleCardProps) {
       <CardContent className="grid gap-4 pt-4">
         {blocks.map((block, index) => {
           if (block.type === "heading") {
+            const Heading = HEADING_TAGS[block.level];
             return (
-              <p key={index} className={HEADING_CLASSES[block.level]}>
+              <Heading key={index} className={HEADING_CLASSES[block.level]}>
                 {block.text}
-              </p>
+              </Heading>
             );
           }
           if (block.type === "list") {

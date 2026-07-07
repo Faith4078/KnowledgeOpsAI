@@ -129,7 +129,7 @@ export function DocumentationForm({
                 disabled={isGenerating}
                 onClick={() => setMode(option.value)}
                 className={cn(
-                  "rounded-sm px-3 py-1.5 text-sm transition-colors",
+                  "rounded-sm px-3 py-1.5 text-sm outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50",
                   mode === option.value
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",

@@ -10,6 +10,9 @@ const HEADING_CLASSES = {
   3: "text-lg font-medium",
 } as const;
 
+// Article heading levels sit under the page <h1>, so level 1 → <h2> etc.
+const HEADING_TAGS = { 1: "h2", 2: "h3", 3: "h4" } as const;
+
 /** The full help article rendered as plain formatted text. */
 export function ArticleBody({ article }: ArticleBodyProps) {
   const blocks = parseArticleBlocks(article);
@@ -18,10 +21,11 @@ export function ArticleBody({ article }: ArticleBodyProps) {
     <div className="grid gap-4">
       {blocks.map((block, index) => {
         if (block.type === "heading") {
+          const Heading = HEADING_TAGS[block.level];
           return (
-            <p key={index} className={HEADING_CLASSES[block.level]}>
+            <Heading key={index} className={HEADING_CLASSES[block.level]}>
               {block.text}
-            </p>
+            </Heading>
           );
         }
         if (block.type === "list") {

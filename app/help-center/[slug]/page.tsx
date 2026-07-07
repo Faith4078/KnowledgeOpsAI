@@ -40,11 +40,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <header className="grid gap-4">
           <Link
             href="/help-center"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="w-fit rounded-sm text-sm font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
           >
             &larr; Back to Help Center
           </Link>
-          <h1 className="font-serif text-4xl font-normal leading-tight tracking-tight">
+          <h1 className="font-serif text-3xl font-normal leading-tight tracking-tight sm:text-4xl">
             {article.title}
           </h1>
           <p className="text-lg leading-relaxed text-muted-foreground">

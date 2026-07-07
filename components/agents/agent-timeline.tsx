@@ -122,6 +122,11 @@ export function AgentTimeline({ stage, failedStage }: AgentTimelineProps) {
 
   return (
     <section aria-label="Agent pipeline" className="rounded-lg border bg-card p-6">
+      <p aria-live="polite" className="sr-only">
+        {steps
+          .map((step) => `${step.label}: ${STATUS_TEXT[step.status]}`)
+          .join(". ")}
+      </p>
       <ol className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-0">
         {steps.map((step, index) => (
           <li
@@ -177,11 +182,11 @@ export function AgentTimeline({ stage, failedStage }: AgentTimelineProps) {
                 {step.label}
               </span>
               <span
+                aria-hidden="true"
                 className={cn(
                   "text-xs text-muted-foreground",
                   step.status === "active" && "animate-pulse",
                 )}
-                role={step.status === "active" ? "status" : undefined}
               >
                 {STATUS_TEXT[step.status]}
               </span>

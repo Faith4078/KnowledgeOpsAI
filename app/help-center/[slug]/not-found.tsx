@@ -14,7 +14,7 @@ export default function ArticleNotFound() {
         </p>
         <Link
           href="/help-center"
-          className="text-sm font-medium underline underline-offset-4 transition-colors hover:text-muted-foreground"
+          className="w-fit rounded-sm text-sm font-medium underline underline-offset-4 outline-none transition-colors hover:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         >
           Browse all Help Center articles
         </Link>
