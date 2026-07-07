@@ -1,30 +1,34 @@
 # LearnOps AI
 
-AI-powered documentation publishing for customer education teams. Paste or upload raw product documentation and a two-agent pipeline turns it into a polished help article, FAQs, and a knowledge-check quiz — then publishes the approved bundle to Sanity CMS, where it appears instantly in a public, searchable Help Center.
+AI-powered Customer Education Operations. LearnOps AI transforms raw product documentation into governed, reviewable, publish-ready knowledge assets — a help article, FAQs, and a knowledge check — through an automated publishing workflow, then publishes the approved asset to Sanity CMS, where it appears instantly in a public, searchable Help Center backed by the knowledge base.
 
 Built with Next.js (App Router), Google Gemini, and Sanity, styled after the Harvey Legal Dark design system.
 
 ## Overview
 
-Customer education teams receive raw docs (Markdown, plain text) and must manually rewrite them into customer-facing learning material, run an editorial pass, and publish. LearnOps AI automates that whole path:
+Customer Education teams receive raw docs (Markdown, plain text) and must manually rewrite them into customer-facing learning content, run an editorial governance pass, and publish. LearnOps AI automates that documentation lifecycle:
 
 1. An operator pastes documentation or uploads a `.md`/`.txt` file.
-2. The **Generator Agent** (one Gemini call) produces a structured content bundle — title, slug, summary, article, FAQs, and quiz.
-3. The **Review Agent** (one Gemini call) editorially improves the entire bundle for clarity, structure, and beginner-friendliness.
-4. The operator previews the reviewed bundle in result cards and publishes it to Sanity with one click.
-5. The **Help Center** reflects published content automatically, with keyword search, article pages, FAQs, and an interactive quiz.
+2. The **Generator Agent** (one Gemini call) produces a structured knowledge asset — title, slug, summary, article, FAQs, knowledge check, and educational metadata (learning objectives, reading time, difficulty, target audience, prerequisites).
+3. The **Review Agent** (one Gemini call, the AI Review step) editorially improves the entire asset and returns a **Quality Assurance Report** — overall quality score, readability assessment, itemized changes, and an explicit publishing recommendation — in the same response.
+4. The operator judges publish-readiness from the QA report, previews the reviewed knowledge asset in result cards, and publishes it to the knowledge base with one click. The published document carries a **governance record**: review score, recommendation, generating model, review-agent version, documentation version, and last-reviewed date.
+5. The **Help Center** reflects published learning content automatically, with keyword search, article pages showing learning objectives and a Content Governance sidebar, FAQs, and an interactive knowledge check.
 
-A visual Agent Timeline animates each pipeline stage as it completes, with graceful error states and automatic retries for transient AI failures.
+A visual timeline animates each publishing-workflow stage as it completes — including per-stage timings ("Completed in 4.2s") — with graceful error states and automatic retries for transient AI failures. The Home page opens with a **Knowledge Operations Dashboard** (live figures from Sanity where computable, clearly-marked estimates otherwise) and an architecture panel describing each pipeline stage.
 
 ## Features
 
 - **Paste or upload** documentation (`.md`, `.txt`) through a single content-source abstraction
-- **Two-agent pipeline** — exactly two AI calls per run (generate, review), efficient within free-tier limits
-- **Structured, validated output** — every AI response is parsed and validated against Zod schemas before use
-- **Animated Agent Timeline** — Uploaded → Generator Agent → Review Agent → Publishing → Help Center Updated
-- **Result cards** previewing the reviewed article, FAQs, and quiz before anything goes live
-- **One-click publish** to Sanity CMS with success/error toasts
-- **Public Help Center** — searchable article list, full article pages, FAQs, knowledge-check quiz
+- **Two-agent publishing workflow** — exactly two AI calls per run (generate, AI Review), efficient within free-tier limits; educational metadata and the QA report ride inside those same two calls
+- **Structured, validated output** — every AI response is parsed and validated against Zod schemas before use (content governance at the schema level)
+- **Quality Assurance Report** — overall quality score (0–100), readability assessment, itemized changes (clarity, formatting, duplicates, quiz), and a Ready to Publish / Needs Attention recommendation
+- **Educational metadata** — learning objectives, estimated reading time, difficulty, target audience, and prerequisites generated with every asset and displayed in the workspace and Help Center
+- **Animated workflow timeline** — Uploaded → Generator Agent → AI Review → Quality Assurance Report → Publishing → Knowledge Base Updated, with per-stage completion timings
+- **Result cards** previewing the QA report and reviewed knowledge asset — article, FAQs, and knowledge check — before anything goes live
+- **One-click publish** to the Sanity-backed knowledge base with success/error toasts; every published document carries its governance record
+- **Content Governance sidebar** on article pages — status, review score, computed freshness, generating model, review-agent version, documentation version, review and publish dates
+- **Knowledge Operations Dashboard** — published assets, average review score, knowledge-base health, and last-published date computed live from Sanity; drafts, pending review, and processing time as clearly-marked estimates
+- **Public Help Center** — searchable learning content: article list with difficulty and reading-time hints, full article pages, FAQs, knowledge check
 - **Resilience** — retry with backoff, rate-limit handling, missing-env detection, human-readable error messages
 - **Accessible, responsive UI** — labeled inputs, visible focus states, ARIA live regions, screen-reader-friendly timeline, mobile-first layouts
 
@@ -32,9 +36,9 @@ A visual Agent Timeline animates each pipeline stage as it completes, with grace
 
 The system is deliberately small and seam-oriented:
 
-- **Two-agent pipeline.** The Generator Agent produces the full content bundle in one structured-JSON request; the Review Agent improves the whole bundle in a second request. No per-artifact calls.
+- **Two-agent pipeline.** The Generator Agent produces the full content bundle (including educational metadata) in one structured-JSON request; the Review Agent improves the whole bundle and produces the Quality Assurance Report in a second request. No per-artifact calls — the QA Report timeline stage presents data the reviewer already returned.
 - **One AI abstraction (provider-swap boundary).** All model access goes through `generateWithGemini` in `lib/ai/gemini.ts`. It owns client initialization, model config, structured JSON generation, parsing, Zod validation, retries, rate-limit handling, and typed error results. Agents know nothing about the provider — swapping Gemini for Claude or OpenAI touches one module.
-- **Actions layer.** Next.js server actions (`actions/`) are the only bridge between UI and services: `generate-content`, `review-content`, `publish-to-sanity`, `fetch-articles`. Each returns a typed result, never throws raw errors into the UI.
+- **Actions layer.** Next.js server actions (`actions/`) are the only bridge between UI and services: `generate-content`, `review-content`, `publish-to-sanity`, `fetch-articles`, `fetch-stats`. Each returns a typed result, never throws raw errors into the UI.
 - **Content-source abstraction.** `lib/content-source` normalizes every input (pasted text, uploaded file) to one trimmed documentation string. New formats (e.g. PDF) are added by registering a `FileContentExtractor` — the upload flow doesn't change.
 - **Seam-based testing.** Tests inject fakes at the seams instead of mocking SDKs: `setModelCaller`/`setRetryDelays` replace the Gemini transport, and `setSanityWriter`/`setSanityReader` replace the Sanity client. The suite exercises real parsing, validation, retry, and error-mapping logic with no network access.
 
@@ -42,15 +46,15 @@ The system is deliberately small and seam-oriented:
 
 ```mermaid
 flowchart LR
-    A[Upload / Paste Docs] --> B[Generator Agent<br/>1 Gemini call]
-    B --> C[Review Agent<br/>1 Gemini call]
-    C --> D[Preview Result Cards]
-    D --> E[Publish to Sanity CMS]
-    E --> F[Help Center<br/>search, article, FAQs, quiz]
+    A[Upload / Paste Docs] --> B[Generator Agent<br/>1 Gemini call<br/>bundle + edu metadata]
+    B --> C[AI Review<br/>1 Gemini call<br/>improved bundle + QA report]
+    C --> D[QA Report +<br/>Preview Result Cards]
+    D --> E[Publish to Sanity CMS<br/>with governance record]
+    E --> F[Help Center<br/>search, article, governance,<br/>FAQs, knowledge check]
 ```
 
 ```
-Upload → Generator Agent → Review Agent → Publish to Sanity → Help Center
+Upload → Generator Agent → AI Review → QA Report → Publish to Sanity → Help Center
 ```
 
 ## Folder Structure
@@ -62,20 +66,24 @@ learnopsai/
 │   └── help-center/          # Public Help Center (list + [slug] article page)
 ├── actions/                  # Server actions (UI ↔ services bridge)
 │   ├── generate-content.ts   # Generator Agent
-│   ├── review-content.ts     # Review Agent
-│   ├── publish-to-sanity.ts  # Persist reviewed bundle
-│   └── fetch-articles.ts     # GROQ reads for the Help Center
+│   ├── review-content.ts     # Review Agent (bundle + QA report)
+│   ├── publish-to-sanity.ts  # Persist reviewed bundle + governance record
+│   ├── fetch-articles.ts     # GROQ reads for the Help Center
+│   └── fetch-stats.ts        # Knowledge Operations Dashboard figures
 ├── components/
-│   ├── agents/               # Timeline, result cards, publish card, skeletons
-│   ├── help-center/          # Search, article body, FAQ + quiz sections
+│   ├── agents/               # Timeline, QA report card, result cards, publish card
+│   ├── dashboard/            # Knowledge Ops Dashboard + architecture panel
+│   ├── education/            # Difficulty badge, reading-time label
+│   ├── help-center/          # Search, article body, governance sidebar, FAQ + quiz
 │   ├── layout/               # Dashboard shell (nav, skip link)
 │   ├── upload/               # Documentation form (paste / upload tabs)
 │   └── ui/                   # shadcn/ui primitives
 ├── hooks/
-│   └── use-content-generation.ts  # Client pipeline state machine
+│   └── use-content-generation.ts  # Client pipeline state machine + stage timings
 ├── lib/
 │   ├── ai/                   # Gemini abstraction, prompts, Zod schemas (provider-swap boundary)
 │   ├── content-source/       # Paste/file input normalization (extension point)
+│   ├── education/            # Pure derivations: freshness, doc fingerprint, ops stats, placeholders
 │   ├── sanity/               # Sanity client factory + types
 │   └── types/                # Shared domain types
 ├── sanity/                   # Sanity schema (helpArticle) for the Studio
@@ -124,7 +132,7 @@ Fill in the values (see the table below):
    import { schemaTypes } from "./sanity"; // → schema: { types: schemaTypes }
    ```
 
-   The single document type is `helpArticle` (title, slug, summary, article, faqs, quiz, publishedAt). If you prefer, create a fresh Studio with `pnpm create sanity@latest` and paste in `sanity/schemas/help-article.ts`.
+   The single document type is `helpArticle` (title, slug, summary, article, faqs, quiz, educationalMetadata, governance, publishedAt). If you prefer, create a fresh Studio with `pnpm create sanity@latest` and paste in `sanity/schemas/help-article.ts`. Documents published before the educational metadata and governance fields existed still render — the new fields are optional on read.
 
 ### 4. Run
 

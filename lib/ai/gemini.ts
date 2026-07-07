@@ -4,7 +4,8 @@ import { checkEnv } from "@/utils/env";
 
 import type { AiResult, ModelCaller } from "./types";
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+/** Exported so published Knowledge Assets can record their provenance. */
+export const GEMINI_MODEL = "gemini-2.5-flash";
 
 /** Total attempts per generation: 1 initial + 2 retries. */
 const MAX_ATTEMPTS = 3;

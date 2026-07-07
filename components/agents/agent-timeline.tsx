@@ -3,23 +3,27 @@
 import { Check, CircleAlert, LoaderCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { FailedStage, PipelineStage } from "@/lib/types";
+import type { FailedStage, PipelineStage, StageDurations } from "@/lib/types";
 
 type StepStatus = "complete" | "active" | "error" | "pending" | "disabled";
 
 interface TimelineStep {
   label: string;
   status: StepStatus;
+  /** Wall-clock time the stage took, when measured and complete. */
+  durationMs?: number;
 }
 
 interface AgentTimelineProps {
   stage: PipelineStage;
   failedStage: FailedStage | null;
+  stageDurations?: StageDurations;
 }
 
 function buildSteps(
   stage: PipelineStage,
   failedStage: AgentTimelineProps["failedStage"],
+  durations: StageDurations,
 ): TimelineStep[] {
   const reviewed =
     stage === "done" ||
@@ -56,6 +60,14 @@ function buildSteps(
             ? "pending"
             : "disabled";
 
+  // The QA Report stage presents data the Review Agent already returned
+  // (no extra AI call): it completes the moment the report renders.
+  const qaReport: StepStatus = reviewed
+    ? "complete"
+    : stage === "generating" || stage === "reviewing"
+      ? "pending"
+      : "disabled";
+
   const helpCenter: StepStatus =
     stage === "published"
       ? "complete"
@@ -65,11 +77,32 @@ function buildSteps(
 
   return [
     { label: "Documentation Uploaded", status: "complete" },
-    { label: "Generator Agent", status: generator },
-    { label: "Review Agent", status: reviewer },
-    { label: "Publishing", status: publishing },
-    { label: "Help Center Updated", status: helpCenter },
+    {
+      label: "Generator Agent",
+      status: generator,
+      durationMs: durations.generating,
+    },
+    { label: "AI Review", status: reviewer, durationMs: durations.reviewing },
+    { label: "Quality Assurance Report", status: qaReport },
+    {
+      label: "Publishing",
+      status: publishing,
+      durationMs: durations.publishing,
+    },
+    { label: "Knowledge Base Updated", status: helpCenter },
   ];
+}
+
+/** "Completed in 4.2s" — per-stage wall-clock timing, one decimal. */
+function completedInText(durationMs: number): string {
+  return `Completed in ${(durationMs / 1000).toFixed(1)}s`;
+}
+
+function statusText(step: TimelineStep): string {
+  if (step.status === "complete" && step.durationMs !== undefined) {
+    return completedInText(step.durationMs);
+  }
+  return STATUS_TEXT[step.status];
 }
 
 const STATUS_TEXT: Record<StepStatus, string> = {
@@ -117,14 +150,18 @@ function StepIndicator({ status }: { status: StepStatus }) {
  * indicator and connector animate subtly as the run progresses —
  * restrained, enterprise-feel transitions, no celebration effects.
  */
-export function AgentTimeline({ stage, failedStage }: AgentTimelineProps) {
-  const steps = buildSteps(stage, failedStage);
+export function AgentTimeline({
+  stage,
+  failedStage,
+  stageDurations = {},
+}: AgentTimelineProps) {
+  const steps = buildSteps(stage, failedStage, stageDurations);
 
   return (
-    <section aria-label="Agent pipeline" className="rounded-lg border bg-card p-6">
+    <section aria-label="Publishing workflow" className="rounded-lg border bg-card p-6">
       <p aria-live="polite" className="sr-only">
         {steps
-          .map((step) => `${step.label}: ${STATUS_TEXT[step.status]}`)
+          .map((step) => `${step.label}: ${statusText(step)}`)
           .join(". ")}
       </p>
       <ol className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-0">
@@ -188,7 +225,7 @@ export function AgentTimeline({ stage, failedStage }: AgentTimelineProps) {
                   step.status === "active" && "animate-pulse",
                 )}
               >
-                {STATUS_TEXT[step.status]}
+                {statusText(step)}
               </span>
             </div>
           </li>

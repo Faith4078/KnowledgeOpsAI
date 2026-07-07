@@ -24,6 +24,13 @@ const validBundle: ContentBundle = {
       explanation: "Widgets are reusable components.",
     },
   ],
+  educationalMetadata: {
+    learningObjectives: ["Create a widget", "Configure a widget"],
+    estimatedReadingMinutes: 4,
+    difficulty: "beginner",
+    targetAudience: "New customers setting up their first widget",
+    prerequisites: [],
+  },
 };
 
 beforeEach(() => {
@@ -60,6 +67,33 @@ describe("generateContent", () => {
 
   it("returns invalid-response when JSON does not match the bundle schema", async () => {
     setModelCaller(async () => JSON.stringify({ title: "only a title" }));
+
+    const result = await generateContent("Some documentation");
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
+  });
+
+  it("returns invalid-response when educational metadata is missing", async () => {
+    const { educationalMetadata: _omitted, ...withoutMetadata } = validBundle;
+    setModelCaller(async () => JSON.stringify(withoutMetadata));
+
+    const result = await generateContent("Some documentation");
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
+  });
+
+  it("returns invalid-response when educational metadata is invalid", async () => {
+    setModelCaller(async () =>
+      JSON.stringify({
+        ...validBundle,
+        educationalMetadata: {
+          ...validBundle.educationalMetadata,
+          learningObjectives: [],
+          estimatedReadingMinutes: -3,
+          difficulty: "expert",
+        },
+      }),
+    );
 
     const result = await generateContent("Some documentation");
 

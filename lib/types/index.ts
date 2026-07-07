@@ -4,8 +4,14 @@
 
 export type {
   ContentBundle,
+  Difficulty,
+  EducationalMetadata,
   Faq,
+  PublishingRecommendation,
   QuizQuestion,
+  ReviewChange,
+  ReviewChangeCategory,
+  ReviewReport,
 } from "@/lib/ai/schemas";
 
 /** Error codes a content-generation run can surface to the UI. */
@@ -16,7 +22,7 @@ export type GenerateContentErrorCode =
   | "rate-limit"
   | "missing-config";
 
-import type { ContentBundle } from "@/lib/ai/schemas";
+import type { ContentBundle, ReviewReport } from "@/lib/ai/schemas";
 
 /** Discriminated union returned by the `generateContent` server action. */
 export type GenerateContentResult =
@@ -32,7 +38,7 @@ export type ReviewContentErrorCode =
 
 /** Discriminated union returned by the `reviewContent` server action. */
 export type ReviewContentResult =
-  | { status: "success"; bundle: ContentBundle }
+  | { status: "success"; bundle: ContentBundle; report: ReviewReport }
   | { status: "error"; code: ReviewContentErrorCode; message: string };
 
 /** Error codes a publish run can surface to the UI. */
@@ -75,3 +81,9 @@ export type PipelineStage =
 
 /** Pipeline stages that can fail and be pinned on the Agent Timeline. */
 export type FailedStage = "generating" | "reviewing" | "publishing";
+
+/** Pipeline stages whose wall-clock duration is measured client-side. */
+export type TimedStage = "generating" | "reviewing" | "publishing";
+
+/** Duration in ms of each completed stage, keyed by stage. */
+export type StageDurations = Partial<Record<TimedStage, number>>;

@@ -16,7 +16,7 @@ export function BundleOverviewCard({ bundle }: BundleOverviewCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardDescription>Generated article</CardDescription>
+        <CardDescription>Knowledge asset</CardDescription>
         <CardTitle className="font-serif text-3xl font-normal tracking-tight">
           {bundle.title}
         </CardTitle>

@@ -121,6 +121,45 @@ describe("fetchArticleBySlug", () => {
     expect(result).toEqual({ status: "success", article: articleB });
   });
 
+  it("tolerates legacy documents without educational metadata", async () => {
+    // articleA is legacy-shaped: no educationalMetadata, difficulty, or
+    // readingMinutes — the optional read types accept it unchanged.
+    setSanityReader(
+      fakeReader({ fetchArticleBySlug: async () => articleA }),
+    );
+
+    const result = await fetchArticleBySlug("older-article");
+
+    expect(result).toEqual({ status: "success", article: articleA });
+    if (result.status === "success" && result.article !== null) {
+      expect(result.article.educationalMetadata).toBeUndefined();
+      expect(result.article.difficulty).toBeUndefined();
+      expect(result.article.readingMinutes).toBeUndefined();
+    }
+  });
+
+  it("returns educational metadata when the document has it", async () => {
+    const enriched: HelpArticle = {
+      ...articleB,
+      difficulty: "intermediate",
+      readingMinutes: 6,
+      educationalMetadata: {
+        learningObjectives: ["Understand widgets"],
+        estimatedReadingMinutes: 6,
+        difficulty: "intermediate",
+        targetAudience: "Existing customers",
+        prerequisites: ["Basic setup complete"],
+      },
+    };
+    setSanityReader(
+      fakeReader({ fetchArticleBySlug: async () => enriched }),
+    );
+
+    const result = await fetchArticleBySlug("newer-article");
+
+    expect(result).toEqual({ status: "success", article: enriched });
+  });
+
   it("returns null for an unknown slug", async () => {
     setSanityReader(fakeReader());
 

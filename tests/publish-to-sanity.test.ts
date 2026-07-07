@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { publishToSanity } from "@/actions/publish-to-sanity";
+import type { PublishReviewRecord } from "@/actions/publish-to-sanity";
+import { GEMINI_MODEL, REVIEW_AGENT_VERSION } from "@/lib/ai";
 import { setSanityWriter } from "@/lib/sanity";
 import type { HelpArticleDoc, SanityWriter } from "@/lib/sanity";
-import type { ContentBundle } from "@/lib/types";
+import type { ContentBundle, ReviewReport } from "@/lib/types";
 import { dedupeSlug, normalizeSlug } from "@/utils/slug";
 
 /**
@@ -26,6 +28,27 @@ const validBundle: ContentBundle = {
       explanation: "Widgets are reusable components.",
     },
   ],
+  educationalMetadata: {
+    learningObjectives: ["Create a widget", "Configure a widget"],
+    estimatedReadingMinutes: 4,
+    difficulty: "beginner",
+    targetAudience: "New customers setting up their first widget",
+    prerequisites: ["An active account"],
+  },
+};
+
+const validReport: ReviewReport = {
+  overallQualityScore: 91,
+  readabilityAssessment: "Reads clearly for first-time customers.",
+  changesMade: [
+    { category: "clarity", description: "Tightened the introduction." },
+  ],
+  publishingRecommendation: "ready",
+};
+
+const validReview: PublishReviewRecord = {
+  report: validReport,
+  documentationVersion: "doc-0a1b2c3d",
 };
 
 function fakeWriter(overrides: Partial<SanityWriter> = {}): {
@@ -54,7 +77,7 @@ describe("publishToSanity", () => {
     const { writer, created } = fakeWriter();
     setSanityWriter(writer);
 
-    const result = await publishToSanity(validBundle);
+    const result = await publishToSanity(validBundle, validReview);
 
     expect(result).toEqual({
       status: "success",
@@ -70,11 +93,89 @@ describe("publishToSanity", () => {
     expect(Date.parse(doc.publishedAt)).not.toBeNaN();
   });
 
+  it("maps educational metadata onto the created document", async () => {
+    const { writer, created } = fakeWriter();
+    setSanityWriter(writer);
+
+    await publishToSanity(validBundle, validReview);
+
+    expect(created[0].educationalMetadata).toEqual(
+      validBundle.educationalMetadata,
+    );
+  });
+
+  it("maps the review outcome and provenance into the governance record", async () => {
+    const { writer, created } = fakeWriter();
+    setSanityWriter(writer);
+    const before = Date.now();
+
+    await publishToSanity(validBundle, validReview);
+
+    const governance = created[0].governance;
+    expect(governance.reviewScore).toBe(validReport.overallQualityScore);
+    expect(governance.publishingRecommendation).toBe(
+      validReport.publishingRecommendation,
+    );
+    expect(governance.generatedBy).toBe(GEMINI_MODEL);
+    expect(governance.reviewAgentVersion).toBe(REVIEW_AGENT_VERSION);
+    expect(governance.documentationVersion).toBe(
+      validReview.documentationVersion,
+    );
+    // lastReviewedAt is stamped at publish time, matching publishedAt.
+    expect(governance.lastReviewedAt).toBe(created[0].publishedAt);
+    expect(Date.parse(governance.lastReviewedAt)).toBeGreaterThanOrEqual(
+      before,
+    );
+  });
+
+  it("rejects an invalid QA report without touching Sanity", async () => {
+    const { writer, created } = fakeWriter();
+    setSanityWriter(writer);
+
+    const result = await publishToSanity(validBundle, {
+      ...validReview,
+      report: {
+        ...validReport,
+        overallQualityScore: -5,
+      },
+    });
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
+    expect(created).toHaveLength(0);
+  });
+
+  it("rejects a missing documentation version without touching Sanity", async () => {
+    const { writer, created } = fakeWriter();
+    setSanityWriter(writer);
+
+    const result = await publishToSanity(validBundle, {
+      ...validReview,
+      documentationVersion: "",
+    });
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
+    expect(created).toHaveLength(0);
+  });
+
+  it("rejects a bundle missing educational metadata without touching Sanity", async () => {
+    const { writer, created } = fakeWriter();
+    setSanityWriter(writer);
+    const { educationalMetadata: _omitted, ...withoutMetadata } = validBundle;
+
+    const result = await publishToSanity(
+      withoutMetadata as ContentBundle,
+      validReview,
+    );
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
+    expect(created).toHaveLength(0);
+  });
+
   it("normalizes the AI-generated slug", async () => {
     const { writer, created } = fakeWriter();
     setSanityWriter(writer);
 
-    await publishToSanity({ ...validBundle, slug: "Hello World!" });
+    await publishToSanity({ ...validBundle, slug: "Hello World!" }, validReview);
 
     expect(created[0].slug).toBe("hello-world");
   });
@@ -85,7 +186,10 @@ describe("publishToSanity", () => {
     });
     setSanityWriter(writer);
 
-    const result = await publishToSanity({ ...validBundle, slug: "Hello World" });
+    const result = await publishToSanity(
+      { ...validBundle, slug: "Hello World" },
+      validReview,
+    );
 
     expect(result).toEqual({ status: "success", slug: "hello-world-3" });
     expect(created[0].slug).toBe("hello-world-3");
@@ -99,7 +203,7 @@ describe("publishToSanity", () => {
     });
     setSanityWriter(writer);
 
-    const result = await publishToSanity(validBundle);
+    const result = await publishToSanity(validBundle, validReview);
 
     expect(result.status).toBe("error");
     if (result.status === "error") {
@@ -113,7 +217,7 @@ describe("publishToSanity", () => {
     vi.stubEnv("NEXT_PUBLIC_SANITY_DATASET", "");
     vi.stubEnv("SANITY_API_TOKEN", "");
 
-    const result = await publishToSanity(validBundle);
+    const result = await publishToSanity(validBundle, validReview);
 
     expect(result.status).toBe("error");
     if (result.status === "error") {
@@ -125,10 +229,13 @@ describe("publishToSanity", () => {
     const { writer, created } = fakeWriter();
     setSanityWriter(writer);
 
-    const result = await publishToSanity({
-      ...validBundle,
-      title: "",
-    } as ContentBundle);
+    const result = await publishToSanity(
+      {
+        ...validBundle,
+        title: "",
+      } as ContentBundle,
+      validReview,
+    );
 
     expect(result.status).toBe("error");
     if (result.status === "error") {

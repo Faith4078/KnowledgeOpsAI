@@ -60,6 +60,14 @@ function createRealWriter(
           _key: `quiz-${index}`,
           ...question,
         })),
+        educationalMetadata: {
+          _type: "educationalMetadata",
+          ...doc.educationalMetadata,
+        },
+        governance: {
+          _type: "governance",
+          ...doc.governance,
+        },
         publishedAt: doc.publishedAt,
       });
       return created._id;
@@ -112,11 +120,16 @@ export function setSanityReader(reader: SanityReader | null): void {
   sanityReaderOverride = reader;
 }
 
+// Older documents lack educationalMetadata/governance — projections
+// leave the fields null and the read types mark them optional.
 const SUMMARY_PROJECTION = `{
   title,
   "slug": slug.current,
   summary,
-  publishedAt
+  publishedAt,
+  "difficulty": educationalMetadata.difficulty,
+  "readingMinutes": educationalMetadata.estimatedReadingMinutes,
+  "reviewScore": governance.reviewScore
 }`;
 
 const ARTICLE_PROJECTION = `{
@@ -126,7 +139,25 @@ const ARTICLE_PROJECTION = `{
   article,
   "faqs": coalesce(faqs[]{ question, answer }, []),
   "quiz": coalesce(quiz[]{ question, options, answer, explanation }, []),
-  publishedAt
+  "educationalMetadata": educationalMetadata{
+    learningObjectives,
+    estimatedReadingMinutes,
+    difficulty,
+    targetAudience,
+    prerequisites
+  },
+  "governance": governance{
+    reviewScore,
+    publishingRecommendation,
+    generatedBy,
+    reviewAgentVersion,
+    documentationVersion,
+    lastReviewedAt
+  },
+  publishedAt,
+  "difficulty": educationalMetadata.difficulty,
+  "readingMinutes": educationalMetadata.estimatedReadingMinutes,
+  "reviewScore": governance.reviewScore
 }`;
 
 function createRealReader(projectId: string, dataset: string): SanityReader {

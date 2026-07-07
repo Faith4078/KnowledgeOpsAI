@@ -104,12 +104,13 @@ export function DocumentationForm({
       >
         <CardHeader>
           <CardTitle className="font-serif text-2xl font-normal tracking-tight">
-            Add documentation
+            Add source documentation
           </CardTitle>
           <CardDescription>
-            The Generator Agent turns raw product documentation into a help
-            article, FAQs, and a knowledge-check quiz in one pass. Paste text
-            or upload a Markdown/plain-text file.
+            The publishing workflow transforms raw product documentation into
+            a governed knowledge asset — help article, FAQs, and knowledge
+            check — in one pass. Paste text or upload a Markdown/plain-text
+            file.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 pt-6">
@@ -217,7 +218,7 @@ export function DocumentationForm({
         </CardContent>
         <CardFooter className="pt-6">
           <Button type="submit" disabled={isGenerating}>
-            {isGenerating ? "Generating…" : "Generate content"}
+            {isGenerating ? "Processing…" : "Run publishing workflow"}
           </Button>
         </CardFooter>
       </form>

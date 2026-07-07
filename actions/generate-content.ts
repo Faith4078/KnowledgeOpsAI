@@ -8,7 +8,8 @@ import {
 import type { GenerateContentResult } from "@/lib/types";
 
 const ERROR_MESSAGES = {
-  "empty-input": "Please paste some documentation before generating content.",
+  "empty-input":
+    "Please add source documentation before running the publishing workflow.",
   "missing-config":
     "The AI service is not configured. Ask an administrator to set GEMINI_API_KEY.",
   "api-error":

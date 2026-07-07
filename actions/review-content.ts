@@ -4,6 +4,7 @@ import {
   buildReviewerPrompt,
   contentBundleSchema,
   generateWithGemini,
+  reviewResponseSchema,
 } from "@/lib/ai";
 import type { ContentBundle, ReviewContentResult } from "@/lib/types";
 
@@ -19,9 +20,11 @@ const ERROR_MESSAGES = {
 } as const;
 
 /**
- * Review Agent: takes the Generator Agent's complete bundle and improves
- * clarity, structure, and quiz quality in a single Gemini call. Never
- * throws — every failure maps to a typed error the UI can render.
+ * Review Agent: takes the Generator Agent's complete bundle and, in a
+ * single Gemini call, improves clarity, structure, and quiz quality AND
+ * produces the Quality Assurance Report (score, changes made, publishing
+ * recommendation). Never throws — every failure maps to a typed error
+ * the UI can render.
  */
 export async function reviewContent(
   bundle: ContentBundle,
@@ -46,7 +49,7 @@ export async function reviewContent(
     };
   }
 
-  const parsed = contentBundleSchema.safeParse(result.data);
+  const parsed = reviewResponseSchema.safeParse(result.data);
   if (!parsed.success) {
     return {
       status: "error",
@@ -55,5 +58,9 @@ export async function reviewContent(
     };
   }
 
-  return { status: "success", bundle: parsed.data };
+  return {
+    status: "success",
+    bundle: parsed.data.bundle,
+    report: parsed.data.reviewReport,
+  };
 }

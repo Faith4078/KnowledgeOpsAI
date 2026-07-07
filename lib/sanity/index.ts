@@ -5,6 +5,7 @@ export {
   setSanityWriter,
 } from "./client";
 export type {
+  ArticleGovernance,
   HelpArticle,
   HelpArticleDoc,
   HelpArticleSummary,

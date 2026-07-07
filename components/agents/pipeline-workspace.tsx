@@ -3,13 +3,15 @@
 import { AgentTimeline } from "@/components/agents/agent-timeline";
 import { PublishCard } from "@/components/agents/publish-card";
 import { GenerationSkeleton } from "@/components/agents/generation-skeleton";
+import { QaReportCard } from "@/components/agents/qa-report-card";
 import { ResultCards } from "@/components/agents/result-cards";
 import { DocumentationForm } from "@/components/upload/documentation-form";
 import { useContentGeneration } from "@/hooks/use-content-generation";
 
 const STAGE_MESSAGES = {
-  generating: "Generator Agent is writing your article, FAQs, and quiz…",
-  reviewing: "Review Agent is polishing the bundle for clarity and quality…",
+  generating:
+    "Generator Agent is drafting the knowledge asset — article, FAQs, and knowledge check…",
+  reviewing: "AI Review is assessing the draft for clarity and quality…",
 } as const;
 
 /**
@@ -20,8 +22,10 @@ const STAGE_MESSAGES = {
 export function PipelineWorkspace() {
   const {
     bundle,
+    report,
     stage,
     failedStage,
+    stageDurations,
     publishedSlug,
     isGenerating,
     generate,
@@ -42,7 +46,11 @@ export function PipelineWorkspace() {
       />
       {stage !== "idle" && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <AgentTimeline stage={stage} failedStage={failedStage} />
+          <AgentTimeline
+            stage={stage}
+            failedStage={failedStage}
+            stageDurations={stageDurations}
+          />
         </div>
       )}
       {isGenerating && (
@@ -56,6 +64,7 @@ export function PipelineWorkspace() {
       )}
       {isPublishableStage && bundle !== null && (
         <div className="grid gap-10 animate-in fade-in duration-500">
+          {report !== null && <QaReportCard report={report} />}
           <PublishCard
             stage={stage}
             publishedSlug={publishedSlug}

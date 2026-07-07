@@ -36,7 +36,7 @@ export function PublishCard({
         <CardHeader>
           <CardTitle>Published</CardTitle>
           <CardDescription>
-            The article is live in the Help Center.
+            The knowledge asset is live in the Help Center.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -54,10 +54,11 @@ export function PublishCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Publish to Help Center</CardTitle>
+        <CardTitle>Publish to Knowledge Base</CardTitle>
         <CardDescription>
-          Save the reviewed article, FAQs, and quiz to Sanity. It appears in
-          the Help Center immediately.
+          Save the reviewed knowledge asset — article, FAQs, and knowledge
+          check — to the knowledge base. It appears in the Help Center
+          immediately.
         </CardDescription>
       </CardHeader>
       <CardContent>

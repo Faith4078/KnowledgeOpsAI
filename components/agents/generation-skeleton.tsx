@@ -8,10 +8,10 @@ interface GenerationSkeletonProps {
 
 /** Loading placeholder shown while an agent call is in flight. */
 export function GenerationSkeleton({
-  message = "Generator Agent is writing your article, FAQs, and quiz…",
+  message = "Generator Agent is drafting the knowledge asset — article, FAQs, and knowledge check…",
 }: GenerationSkeletonProps) {
   return (
-    <section aria-label="Generating content" aria-busy="true" className="grid gap-6">
+    <section aria-label="Publishing workflow in progress" aria-busy="true" className="grid gap-6">
       <p className="text-sm text-muted-foreground" role="status">
         {message}
       </p>

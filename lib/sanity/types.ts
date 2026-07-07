@@ -1,4 +1,26 @@
-import type { Faq, QuizQuestion } from "@/lib/ai/schemas";
+import type {
+  Difficulty,
+  EducationalMetadata,
+  Faq,
+  PublishingRecommendation,
+  QuizQuestion,
+} from "@/lib/ai/schemas";
+
+/**
+ * Governance record carried by every published Knowledge Asset: the
+ * review outcome plus provenance of how the asset was produced.
+ */
+export interface ArticleGovernance {
+  reviewScore: number;
+  publishingRecommendation: PublishingRecommendation;
+  /** Model identifier that generated the asset, e.g. "gemini-2.5-flash". */
+  generatedBy: string;
+  /** Reviewer prompt version constant, e.g. "review-agent/v1". */
+  reviewAgentVersion: string;
+  /** Fingerprint/label of the source documentation the asset came from. */
+  documentationVersion: string;
+  lastReviewedAt: string;
+}
 
 /** The `helpArticle` document shape written to Sanity. */
 export interface HelpArticleDoc {
@@ -8,6 +30,8 @@ export interface HelpArticleDoc {
   article: string;
   faqs: Faq[];
   quiz: QuizQuestion[];
+  educationalMetadata: EducationalMetadata;
+  governance: ArticleGovernance;
   publishedAt: string;
 }
 
@@ -22,12 +46,20 @@ export interface SanityWriter {
   createHelpArticle(doc: HelpArticleDoc): Promise<string>;
 }
 
-/** Listing-page projection of a published help article. */
+/**
+ * Listing-page projection of a published help article. Documents
+ * published before educational metadata existed lack the hint fields,
+ * so they are optional on every read type.
+ */
 export interface HelpArticleSummary {
   title: string;
   slug: string;
   summary: string;
   publishedAt: string;
+  difficulty?: Difficulty | null;
+  readingMinutes?: number | null;
+  /** Absent on documents published before governance existed. */
+  reviewScore?: number | null;
 }
 
 /** The full `helpArticle` document as read back from Sanity. */
@@ -35,6 +67,10 @@ export interface HelpArticle extends HelpArticleSummary {
   article: string;
   faqs: Faq[];
   quiz: QuizQuestion[];
+  /** Absent on documents published before this field existed. */
+  educationalMetadata?: EducationalMetadata | null;
+  /** Absent on documents published before governance existed. */
+  governance?: ArticleGovernance | null;
 }
 
 /**

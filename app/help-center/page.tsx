@@ -9,8 +9,9 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Help Center — KnowledgeOps AI",
-  description: "Searchable help articles published by the content pipeline.",
+  title: "Help Center — LearnOps AI",
+  description:
+    "Searchable knowledge base of learning content published through the LearnOps AI publishing workflow.",
 };
 
 export default async function HelpCenterPage() {
@@ -24,8 +25,8 @@ export default async function HelpCenterPage() {
             Help Center
           </h1>
           <p className="text-lg leading-relaxed text-muted-foreground">
-            Guides, FAQs, and knowledge checks published straight from the
-            content pipeline.
+            Guides, FAQs, and knowledge checks published from the knowledge
+            base through the publishing workflow.
           </p>
         </div>
         {result.status === "error" ? (

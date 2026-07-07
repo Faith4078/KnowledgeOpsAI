@@ -33,7 +33,7 @@ export function DashboardShell({
       <header className="border-b border-border">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
           <Link href="/" className={`font-serif text-xl tracking-tight ${FOCUS_RING}`}>
-            KnowledgeOps AI
+            LearnOps AI
           </Link>
           <nav aria-label="Primary">
             <ul className="flex items-center gap-5 text-sm font-medium sm:gap-8">

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { reviewContent } from "@/actions/review-content";
 import { setModelCaller, setRetryDelays } from "@/lib/ai";
-import type { ContentBundle } from "@/lib/types";
+import type { ContentBundle, ReviewReport } from "@/lib/types";
 
 /**
  * Seam tests: `reviewContent` end-to-end with the Gemini provider faked
@@ -24,6 +24,13 @@ const draftBundle: ContentBundle = {
       explanation: "Widgets are reusable components.",
     },
   ],
+  educationalMetadata: {
+    learningObjectives: ["Create a widget"],
+    estimatedReadingMinutes: 3,
+    difficulty: "beginner",
+    targetAudience: "New customers",
+    prerequisites: [],
+  },
 };
 
 const improvedBundle: ContentBundle = {
@@ -33,6 +40,20 @@ const improvedBundle: ContentBundle = {
   article:
     "# Getting Started with Widgets\n\nWidgets are the core building block of the product.",
 };
+
+const reviewReport: ReviewReport = {
+  overallQualityScore: 88,
+  readabilityAssessment:
+    "Clear, beginner-friendly prose that suits new customers.",
+  changesMade: [
+    { category: "clarity", description: "Tightened the introduction." },
+    { category: "formatting", description: "Normalized heading levels." },
+  ],
+  publishingRecommendation: "ready",
+};
+
+/** The Review Agent's complete single-call response. */
+const reviewResponse = { bundle: improvedBundle, reviewReport };
 
 beforeEach(() => {
   // Instant retries: no real waiting in tests.
@@ -46,21 +67,48 @@ afterEach(() => {
 });
 
 describe("reviewContent", () => {
-  it("returns the improved, validated bundle on the happy path", async () => {
+  it("returns the improved bundle and QA report on the happy path", async () => {
     const prompts: string[] = [];
     setModelCaller(async (prompt) => {
       prompts.push(prompt);
-      return JSON.stringify(improvedBundle);
+      return JSON.stringify(reviewResponse);
     });
 
     const result = await reviewContent(draftBundle);
 
-    expect(result).toEqual({ status: "success", bundle: improvedBundle });
-    // Exactly one call, carrying the complete draft bundle.
+    expect(result).toEqual({
+      status: "success",
+      bundle: improvedBundle,
+      report: reviewReport,
+    });
+    // Exactly one call, carrying the complete draft bundle — the QA
+    // report rides in the same response, never a second call.
     expect(prompts).toHaveLength(1);
     expect(prompts[0]).toContain(draftBundle.title);
     expect(prompts[0]).toContain(draftBundle.quiz[0].question);
     expect(prompts[0]).toContain(draftBundle.faqs[0].answer);
+  });
+
+  it("returns invalid-response when the QA report is missing", async () => {
+    // A bare bundle (the pre-report response shape) is no longer valid.
+    setModelCaller(async () => JSON.stringify(improvedBundle));
+
+    const result = await reviewContent(draftBundle);
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
+  });
+
+  it("returns invalid-response when the QA report fails validation", async () => {
+    setModelCaller(async () =>
+      JSON.stringify({
+        bundle: improvedBundle,
+        reviewReport: { ...reviewReport, overallQualityScore: 250 },
+      }),
+    );
+
+    const result = await reviewContent(draftBundle);
+
+    expect(result).toMatchObject({ status: "error", code: "invalid-response" });
   });
 
   it("returns invalid-response when the model returns malformed JSON", async () => {

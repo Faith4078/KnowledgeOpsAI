@@ -19,9 +19,9 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: 'KnowledgeOps AI',
+  title: 'LearnOps AI — Customer Education Operations',
   description:
-    'AI-powered documentation publishing: paste docs, generate a help article, FAQs, and quiz in one pass.',
+    'AI-powered Customer Education Operations platform: transform product documentation into governed, reviewable, publish-ready knowledge assets through automated publishing workflows.',
 };
 
 export default function RootLayout({

@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
+  DifficultyBadge,
+  ReadingTime,
+} from "@/components/education/difficulty-badge";
+import {
   Card,
   CardContent,
   CardHeader,
@@ -50,7 +54,8 @@ export function ArticleSearch({ articles }: ArticleSearchProps) {
 
       {articles.length === 0 ? (
         <p className="text-muted-foreground">
-          No articles yet. Publish one from the dashboard to see it here.
+          No articles yet. Publish a knowledge asset from the dashboard to
+          see it here.
         </p>
       ) : filtered.length === 0 ? (
         <p className="text-muted-foreground">
@@ -70,6 +75,17 @@ export function ArticleSearch({ articles }: ArticleSearchProps) {
                     <CardTitle className="font-serif text-xl tracking-tight">
                       {article.title}
                     </CardTitle>
+                    {(article.difficulty != null ||
+                      article.readingMinutes != null) && (
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
+                        {article.difficulty != null && (
+                          <DifficultyBadge difficulty={article.difficulty} />
+                        )}
+                        {article.readingMinutes != null && (
+                          <ReadingTime minutes={article.readingMinutes} />
+                        )}
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent className="grid gap-3 pt-1">
                     <p className="leading-relaxed text-muted-foreground">
