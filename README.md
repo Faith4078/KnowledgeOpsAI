@@ -72,7 +72,7 @@ Upload → Generator Agent → AI Review → QA Report → Publish to Sanity →
 ## Folder Structure
 
 ```
-learnopsai/
+knowledgeopsai/
 ├── app/                          # Next.js App Router
 │   ├── page.tsx                  # Home: Knowledge Ops dashboard + pipeline workspace
 │   ├── help-center/              # Public Help Center (list + [slug] article page)
