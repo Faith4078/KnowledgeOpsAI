@@ -1,8 +1,8 @@
 # KnowledgeOps AI
 
-**AI-powered Customer Education Operations.** KnowledgeOps AI turns raw product documentation into governed, reviewable, publish-ready knowledge assets — a help article, FAQs, and an interactive knowledge check — through an automated two-agent workflow, then publishes the reviewed asset to Sanity CMS, where it appears instantly in a public, searchable Help Center.
+**AI-powered Customer Education Operations.** KnowledgeOps AI turns raw product documentation into governed, reviewable, publish-ready knowledge assets — a help article, FAQs, and an interactive knowledge check through an automated two-agent workflow, then publishes the reviewed asset to Sanity CMS, where it appears instantly in a public, searchable Help Center.
 
-Built with **Next.js 16** (App Router + Server Actions), **Google Gemini**, and **Sanity CMS**, styled after the Harvey Legal Dark design system.
+Built with **Next.js 16** (App Router + Server Actions), **Google Gemini**, and **Sanity CMS**
 
 ---
 
@@ -72,7 +72,7 @@ Upload → Generator Agent → AI Review → QA Report → Publish to Sanity →
 ## Folder Structure
 
 ```
-learnopsai/
+knowledgeopsai/
 ├── app/                          # Next.js App Router
 │   ├── page.tsx                  # Home: Knowledge Ops dashboard + pipeline workspace
 │   ├── help-center/              # Public Help Center (list + [slug] article page)
@@ -200,15 +200,3 @@ pnpm test
 
 ---
 
-## Future Improvements
-
-- **Claude / OpenAI support** — the `generateWithGemini` boundary makes adding providers a one-module change.
-- **Multi-agent orchestration** — specialized agents (structure, tone, fact-check) over the same bundle contract.
-- **ElevenLabs narration** — audio versions of published articles.
-- **Skilljar LMS integration** — push quizzes and articles into formal course flows.
-- **Content-freshness monitoring** — flag published articles whose source documentation has changed.
-- **Scheduled review agents** — periodic re-review of the live catalog for accuracy and tone drift.
-- **Semantic search** — embedding-based Help Center search beyond keyword matching.
-- **Analytics dashboard** — article views, search misses, quiz pass rates.
-- **Human approval workflows** — multi-reviewer sign-off gates between review and publish.
-```
